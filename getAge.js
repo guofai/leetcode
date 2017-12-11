@@ -46,4 +46,3 @@ console.log(getPossibleAge('鸡')); // [ 84, 72, 60, 48, 36, 24, 12, 0 ]
 // console.log(getPossibleAge('蛇')); // [ 88, 76, 64, 52, 40, 28, 16, 4 ]
 // 这就很令人惆怅了。。。
 
-
