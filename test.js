@@ -66,3 +66,4 @@ var data = [{name: "guoshuai", age: 24}, {name: "guotong", age: 22}, {name: "son
 //不用添加圆括号来引用
 data.sort(order_by_age);
 console.log(data);
+
