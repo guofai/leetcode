@@ -53,3 +53,30 @@ alert(book.edition); //2
 // [[Get]]：在读取属性时调用的函数。默认值为undefined。
 // [[Set]]：在写入属性时调用的函数。默认值为undefined。
 // 访问器属性不能直接定义，必须使用Object.defineProperty()来定义。
+
+
+function Person(){
+}
+Person.prototype.name = "Nicholas";
+Person.prototype.age = 29;
+Person.prototype.job = "Software Engineer";
+Person.prototype.sayName = function(){
+    alert(this.name);
+};
+var person1 = new Person();
+person1.sayName(); //"Nicholas"
+var person2 = new Person();
+person2.sayName(); //"Nicholas"
+alert(person1.sayName == person2.sayName); //true
+
+// 从头开始分析，就是有个构造函数Person()   但是是空的，
+// 只要有一个新函数之后，就会有一个prototype的属性，
+// 这个属性里面存的是一个指针，指向原型对象
+// 在这个原型对象中，也就是Person.prototype中，有一个constructor属性，又指回了构造函数，也就是Person。
+// 在Person.prototype中，也只有constructor属性是根据构造函数而来的。其他的属性都是继承于Object。
+// 于是，继续向Person的原型函数中，添加属性，name，age，job，sayName()；
+// 然后，创建Person的实例的时候，person1和person2都有一个内部属性[[Prototype]]，这个属性指向了Person()的构造函数，但是跟Person()没有直接的关系
+// 并且，在所有的实现中，都不能访问到实例的内部属性,
+// 但可以通过isPrototypeOf()方法来确定对象之间是否存在这种关系。从本质上讲，如果[[Prototype]]指向调用isPrototypeOf()方法的对象（Person.prototype），那么这个方法就返回true，
+alert(Person.prototype.isPrototypeOf(person1)); //true
+alert(Person.prototype.isPrototypeOf(person2)); //true
