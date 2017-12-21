@@ -132,4 +132,164 @@ Student.prototype = {
     }
 };
 // 但是这么做,相当于重写Student.prototype
-// 于是，Student.prototype中的constructor属性不会再指回原型函数Student。时间不早了，明天再说。
+// 于是，Student.prototype中的constructor属性不会再指回原型函数Student。
+
+function Person(){
+}
+Person.prototype = {
+    constructor : Person,
+    name : "Nicholas",
+    age : 29,
+    job: "Software Engineer",
+    sayName : function () {
+        alert(this.name);
+    }
+};
+
+// 像这样，直接将constructor指回Person，但是，这样做会让constructor属性的[[Enumerable]]特性值变为true，也就是可枚举。
+// 在使用ECMAScript5兼容的JavaScript引擎，可以用Object.defineProperty()。来定义
+function Person(){
+}
+Person.prototype = {
+    name : "Nicholas",
+    age : 29,
+    job : "Software Engineer",
+    sayName : function () {
+        console.log(this.name);
+    }
+};
+
+//重设构造函数，只适用于ECMAScript 5 兼容的浏览器
+Object.defineProperty(Person.prototype, "constructor", {
+    enumerable: false,
+    value: Person
+});
+//以上这些都是细枝末节了
+var my = new Person();
+my.sayName();
+//   而且，重写原型对象时候，不会改变之前已经初始化好的实例中的prototype
+function Person(){
+}
+var her = new Person();
+Person.prototype = {
+    name : "shuaibi",
+    age : 29,
+    job : "Software Engineer",
+    sayName : function () {
+        console.log(this.name);
+    }
+};
+her.sayName(); //TypeError: her.sayName is not a function
+
+//  这种原型对象，优点同样也是缺点，
+//  优点是共享函数时候，可以修改prototype中方法达到修改所有实例的方法，尽管，属性值可以被实例中自己的属性给覆盖掉
+//  但是，对于引用值来说，就很操蛋了。
+unction Person(){
+}
+Person.prototype = {
+    constructor: Person,
+    name : "Nicholas",
+    age : 29,
+    job : "Software Engineer",
+    friends : ["Shelby", "Court"],
+    sayName : function () {
+        alert(this.name);
+    }
+};
+var person1 = new Person();
+var person2 = new Person();
+person1.friends.push("Van");
+console.log(person1.friends); //"Shelby,Court,Van"
+console.log(person2.friends); //"Shelby,Court,Van"
+console.log(person1.friends === person2.friends); //true
+// 上述中，很没有毛病，建了两个实例，但是，原型中有friends是引用值。
+// 在一个实例中修改的话，就会导致另一个实例中的对应值被修改。
+// 6.2.4 组合使用构造函数模式和原型模式
+function Person(name, age, job){
+    this.name = name;
+    this.age = age;
+    this.job = job;
+    this.friends = ["Shelby", "Court"];
+}
+Person.prototype = {
+    constructor : Person,
+    sayName : function(){
+        alert(this.name);
+    }
+}
+var person1 = new Person("Nicholas", 29, "Software Engineer");
+var person2 = new Person("Greg", 27, "Doctor");
+person1.friends.push("Van");
+console.log(person1.friends); //"Shelby,Count,Van"
+console.log(person2.friends); //"Shelby,Count"
+console.log(person1.friends === person2.friends); //false
+console.log(person1.sayName === person2.sayName); //true
+
+// 此种方法，构造函数里面定义实例的属性，原型模型里面定义共享函数和共享方法。
+// 6.2.5 动态原型模式
+function Person(name, age, job){
+//属性
+    this.name = name;
+    this.age = age;
+    this.job = job;
+    //方法
+    if (typeof this.sayName != "function"){
+        Person.prototype.sayName = function(){
+            console.log(this.name);
+        };
+    }
+}
+var friend = new Person("Nicholas", 29, "Software Engineer");
+friend.sayName();
+
+// 当代码 new Foo(...) 执行时：
+//
+//     1.一个新对象被创建。它继承自Foo.prototype。
+//     2.使用指定的参数调用构造函数Foo，并将 this绑定到新创建的对象。new Foo 等同于 new Foo()，只能用在Foo 不传递任何参数的情况。
+//     3.如果构造函数返回了一个“对象”，那么这个对象会取代整个new出来的结果。如果构造函数没有返回对象，那么new出来的结果为步骤1创建的对象。（一般情况下构造函数不返回任何值，不过用户如果想覆盖这个返回值，可以自己选择返回一个普通对象来覆盖。当然，返回数组也会覆盖，因为数组也是对象。）
+
+// 6.2.6 寄生构造函数模式
+function Person(name, age, job){
+    var o = new Object();
+    o.name = name;
+    o.age = age;
+    o.job = job;
+    o.sayName = function(){
+        alert(this.name);
+    };
+    return o;
+}
+var friend = new Person("Nicholas", 29, "Software Engineer");
+friend.sayName(); //"Nicholas"
+
+//基本上了，就把一个对象弄好了给你返回过来。
+
+function SpecialArray(){
+//创建数组
+    var values = new Array();
+//添加值
+    values.push.apply(values, arguments);
+//添加方法
+    values.toPipedString = function(){
+        return this.join("|");
+    };
+//返回数组
+    return values;
+}
+var colors = new SpecialArray("red", "blue", "green");
+alert(colors.toPipedString()); //"red|blue|green"
+
+//这样玩，可以为new出来的values数组，单独添加一个新的方法，别的Array对象都没有的哟。
+//但是，这样玩，返回的实例values跟SpecialArray构造函数一毛钱关系都没有。
+// 6.2.7 稳妥构造函数模式
+function Person(name, age, job){
+//创建要返回的对象
+    var o = new Object();
+    //可以在这里定义私有变量和函数
+//添加方法
+    o.sayName = function(){
+        alert(name);
+    };
+//返回对象
+    return o;
+}
