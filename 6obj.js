@@ -184,7 +184,7 @@ her.sayName(); //TypeError: her.sayName is not a function
 //  这种原型对象，优点同样也是缺点，
 //  优点是共享函数时候，可以修改prototype中方法达到修改所有实例的方法，尽管，属性值可以被实例中自己的属性给覆盖掉
 //  但是，对于引用值来说，就很操蛋了。
-unction Person(){
+function Person(){
 }
 Person.prototype = {
     constructor: Person,
@@ -198,7 +198,7 @@ Person.prototype = {
 };
 var person1 = new Person();
 var person2 = new Person();
-person1.friends.push("Van");
+// person1.friends.push("Van");
 console.log(person1.friends); //"Shelby,Court,Van"
 console.log(person2.friends); //"Shelby,Court,Van"
 console.log(person1.friends === person2.friends); //true
@@ -219,7 +219,7 @@ Person.prototype = {
 }
 var person1 = new Person("Nicholas", 29, "Software Engineer");
 var person2 = new Person("Greg", 27, "Doctor");
-person1.friends.push("Van");
+// person1.friends.push("Van");
 console.log(person1.friends); //"Shelby,Count,Van"
 console.log(person2.friends); //"Shelby,Count"
 console.log(person1.friends === person2.friends); //false
@@ -255,7 +255,7 @@ function Person(name, age, job){
     o.age = age;
     o.job = job;
     o.sayName = function(){
-        alert(this.name);
+        console.log(this.name);
     };
     return o;
 }
@@ -277,7 +277,7 @@ function SpecialArray(){
     return values;
 }
 var colors = new SpecialArray("red", "blue", "green");
-alert(colors.toPipedString()); //"red|blue|green"
+console.log(colors.toPipedString()); //"red|blue|green"
 
 //这样玩，可以为new出来的values数组，单独添加一个新的方法，别的Array对象都没有的哟。
 //但是，这样玩，返回的实例values跟SpecialArray构造函数一毛钱关系都没有。
@@ -288,8 +288,74 @@ function Person(name, age, job){
     //可以在这里定义私有变量和函数
 //添加方法
     o.sayName = function(){
-        alert(name);
+        console.log(name);
     };
 //返回对象
     return o;
 }
+var friend = Person("Nicholas", 29, "Software Engineer");
+friend.sayName(); //"Nicholas"
+console.log(friend.name);//undefined
+//但有两点不同：一是新创建对象的实例方法不引用this；二是不使用new 操作符调用构造函数。
+
+
+function Process (nameF ) {
+    var o = new Object();
+    var name = nameF;
+    o.sayName = function(){
+        console.log(name);
+    };
+    return o;
+}
+
+var friend = Process('Nick');
+friend.sayName();  //"Nick"
+console.log(friend.name);//undefined
+
+// 作者：睘羽
+// 链接：https://www.zhihu.com/question/25101735/answer/152265936
+//     来源：知乎
+// 著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+
+// 就像知乎上这位的代码，使用了闭包的作用域，在sayName中可以访问到nameF，name，但是在全局中是访问不到的，这就有了私有变量。
+
+
+//6.3继承
+function SuperType(){
+    this.property = true;
+}
+SuperType.prototype.getSuperValue = function(){
+    return this.property;
+};
+function SubType(){
+    this.subproperty = false;
+}
+//继承了SuperType
+SubType.prototype = new SuperType();
+SubType.prototype.getSubValue = function (){
+    return this.subproperty;
+};
+var instance = new SubType();
+console.log(instance.getSuperValue()); //true
+console.log(instance.getSubValue()); //false
+
+//首先，有一个构造函数，有一个属性property = true，然后此构造函数的原型添加上getSuperValue方法，
+// 然后又建了一个构造函数，有自己的属性，将自己的原型指向SuperType的实例，又添加了方法，可以认为SubType继承了SuperType。
+// 要注意instance.constructor 现在指向的是SuperType，这是因为原来SubType.prototype 中的constructor 被重写了的缘故
+
+// 2. 确定原型和实例的关系
+// 可以通过两种方式来确定原型和实例之间的关系。第一种方式是使用instanceof 操作符，只要用
+// 这个操作符来测试实例与原型链中出现过的构造函数，结果就会返回true。以下几行代码就说明了这
+// 一点。
+console.log(instance instanceof Object); //true
+console.log(instance instanceof SuperType); //true
+console.log(instance instanceof SubType); //true
+// 由于原型链的关系，我们可以说instance 是Object、SuperType 或SubType 中任何一个类型
+// 的实例。因此，测试这三个构造函数的结果都返回了true。
+// 第二种方式是使用isPrototypeOf()方法。同样，只要是原型链中出现过的原型，都可以说是该
+// 原型链所派生的实例的原型，因此isPrototypeOf()方法也会返回true，如下所示。
+console.log(Object.prototype.isPrototypeOf(instance)); //true
+console.log(SuperType.prototype.isPrototypeOf(instance)); //true
+console.log(SubType.prototype.isPrototypeOf(instance)); //true
+
+// 两种方法，嗯，过来过去的，原型与实例换个位置
